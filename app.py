@@ -3,14 +3,9 @@ import streamlit as st
 import torch
 import numpy as np
 from PIL import Image
-import cv2
 from diffusers import StableDiffusionPipeline
 from transformers import pipeline as hf_pipeline, set_seed
 import random
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 # ----------------------
 # Config Class (CFG)
@@ -19,13 +14,13 @@ class CFG:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     seed = 42
     image_gen_model_id = "stabilityai/stable-diffusion-2"
-    image_gen_steps = 20  # Reduced for speed
+    image_gen_steps = 20  # Faster
     image_gen_size = (400, 400)
     image_gen_guidance_scale = 9
     prompt_gen_model_id = "gpt2"
     prompt_dataset_size = 6
     prompt_max_length = 12
-    use_auth_token = os.getenv('HF_TOKEN')  # Loaded securely
+    use_auth_token = st.secrets["HF_TOKEN"]  # Secure for Streamlit Cloud
 
 # ----------------------
 # Set random seed
@@ -79,9 +74,8 @@ def generate_image(prompt):
                      guidance_scale=CFG.image_gen_guidance_scale,
                      generator=generator).images[0]
 
-    img_np = np.array(image)
-    img_resized = cv2.resize(img_np, CFG.image_gen_size, interpolation=cv2.INTER_LANCZOS4)
-    return Image.fromarray(img_resized)
+    img_resized = image.resize(CFG.image_gen_size, Image.LANCZOS)
+    return img_resized
 
 # ----------------------
 # GPT-2 Prompt Suggestions
@@ -99,7 +93,7 @@ def generate_prompts(seed_prompt, n_prompts=CFG.prompt_dataset_size, max_length=
 st.set_page_config(page_title="AI Image Generator", layout="centered")
 st.title("🖼️ AI Image Generator with Stable Diffusion")
 
-st.markdown("Generate stunning images using Stable Diffusion v2 and optional GPT-2 prompt inspiration.")
+st.markdown("Generate stunning images using Stable Diffusion v2. Optionally, get prompt ideas from GPT-2.")
 
 prompt = st.text_input("Enter your prompt", value="a futuristic city at sunset")
 
@@ -120,11 +114,3 @@ if st.button("Generate Image"):
             img = generate_image(prompt)
         st.image(img, caption="Generated Image", use_container_width=True)
         st.success("Image generated!")
-
-st.markdown("""
----
-### 🧪 How to Run This App Locally
-1. Create `.env` file with your Hugging Face token: `HF_TOKEN=your_token_here`
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run the app: `streamlit run app.py`
-""")
