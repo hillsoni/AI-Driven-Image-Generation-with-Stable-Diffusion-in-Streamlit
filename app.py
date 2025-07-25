@@ -118,7 +118,7 @@ if st.button("Generate Image"):
     else:
         with st.spinner("Generating image..."):
             img = generate_image(prompt)
-        st.image(img, caption="Generated Image", use_column_width=True)
+        st.image(img, caption="Generated Image", use_container_width=True)
         st.success("Image generated!")
 
 st.markdown("""
