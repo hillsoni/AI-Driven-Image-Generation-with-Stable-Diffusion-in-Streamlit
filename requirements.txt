@@ -3,7 +3,5 @@ torch
 transformers
 diffusers
 Pillow
-opencv-python
 numpy
 matplotlib
-pandas 
